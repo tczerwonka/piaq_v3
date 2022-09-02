@@ -67,6 +67,16 @@ TSL2561 tsl(TSL2561_ADDR_FLOAT);
 int vnox_value = 0;
 int vred_value = 0;
 
+//1wire on a certain board
+//uses A0 on the OPA314 that is unused
+//0x28, 0x75, 0x15, 0x15, 0x06, 0x00, 0x00, 0xAB
+
+#include <OneWire.h>
+#include <DallasTemperature.h>
+OneWire ds(A0); 
+DallasTemperature sensors(&ds);
+DeviceAddress temperature_sensor0 = { 0x28, 0x75, 0x15, 0x15, 0x06, 0x00, 0x00, 0xAB };
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,6 +97,7 @@ void setup() {
   ////////////////////
   pinMode(WAKE, OUTPUT);
   digitalWrite(WAKE, LOW);
+  delay(100);
   configureCCS811(); //Turn on sensor
   unsigned int result = getBaseline();
   //Serial.print("baseline for this sensor: 0x");
@@ -124,6 +135,11 @@ void setup() {
   if (! sht31.begin(0x44)) {   // Set to 0x45 for alternate i2c addr
     Serial.println("#Couldn't find SHT31");
     //while (1) delay(1);
+
+
+  //onewire init
+  sensors.begin();  
+  sensors.setResolution(temperature_sensor0, 10);
   }
 
 
@@ -161,6 +177,7 @@ void loop() {
   read_tsl2561();     //light
   read_mpl3115a2();   //pressure
   read_mics4514();
+  printTemperature(temperature_sensor0);
   digitalWrite(LED_PIN, LOW);
   Serial.print((char)CTRL(D));
   Serial.println("#####");
